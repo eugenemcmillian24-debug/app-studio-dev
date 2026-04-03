@@ -8,6 +8,7 @@ import { generateProjectZip } from "./zip-generator";
 import { paymentRouter } from "./payment-router";
 import { userRouter } from "./user-router";
 import { adminRouter } from "./admin-router";
+import { githubRouter } from "./github-router";
 import {
   saveProject,
   getProjectById,
@@ -53,6 +54,7 @@ export const appRouter = router({
   payment: paymentRouter,
   user: userRouter,
   admin: adminRouter,
+  github: githubRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
