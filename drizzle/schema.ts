@@ -1,17 +1,15 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  boolean,
+} from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +23,40 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Stores every generated full-stack scaffold project.
+ * `files` is a JSON string: Record<string, string> mapping filepath → content.
+ */
+export const generatedProjects = mysqlTable("generated_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  prompt: text("prompt").notNull(),
+  appName: varchar("appName", { length: 128 }).notNull(),
+  appDescription: text("appDescription").notNull(),
+  appCategory: varchar("appCategory", { length: 32 }).notNull(),
+  techStack: text("techStack").notNull(), // JSON array string
+  files: text("files").notNull(),         // JSON: Record<string, string>
+  sqlSchema: text("sqlSchema").notNull(),
+  envExample: text("envExample").notNull(),
+  readmeContent: text("readmeContent").notNull(),
+  packageJson: text("packageJson").notNull(),
+  aiModel: varchar("aiModel", { length: 64 }),
+  isPublic: boolean("isPublic").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GeneratedProject = typeof generatedProjects.$inferSelect;
+export type InsertGeneratedProject = typeof generatedProjects.$inferInsert;
+
+/**
+ * Analytics log for every generation attempt.
+ */
+export const generationLogs = mysqlTable("generation_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  prompt: text("prompt"),
+  success: boolean("success").default(true).notNull(),
+  modelUsed: varchar("modelUsed", { length: 64 }),
+  durationMs: int("durationMs"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
