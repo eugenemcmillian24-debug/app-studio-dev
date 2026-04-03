@@ -133,10 +133,10 @@ export default function Home() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => navigate("/gallery")}
+              onClick={() => navigate("/pricing")}
               className="border-border/50 hover:border-border text-foreground font-semibold px-8 py-6 text-base rounded-xl"
             >
-              View Examples
+              View Pricing
             </Button>
           </div>
 
@@ -222,7 +222,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-border/50 text-center text-muted-foreground text-sm">
-        <p>AppStudio — AI-powered full-stack scaffold generator. Free to use.</p>
+        <p>AppStudio — AI-powered full-stack scaffold generator. <a href="/pricing" className="text-violet-400 hover:text-violet-300">Paid plans start at $9/month</a>.</p>
       </footer>
     </div>
   );

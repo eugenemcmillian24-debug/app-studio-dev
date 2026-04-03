@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, generatedProjects, generationLogs, InsertGeneratedProject } from "../drizzle/schema";
+import { InsertUser, users, generatedProjects, generationLogs, InsertGeneratedProject, subscriptions, usageTracking, llmProviders, InsertSubscription, InsertUsageTracking, InsertLLMProvider } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -106,4 +106,101 @@ export async function logGeneration(data: {
     modelUsed: data.modelUsed ?? null,
     durationMs: data.durationMs ?? null,
   });
+}
+
+// ─── Subscription helpers ─────────────────────────────────────────────────────
+
+export async function getSubscriptionByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(subscriptions).where(eq(subscriptions.userId, userId)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function upsertSubscription(data: InsertSubscription): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getSubscriptionByUserId(data.userId);
+  if (existing) {
+    await db.update(subscriptions).set(data).where(eq(subscriptions.userId, data.userId));
+  } else {
+    await db.insert(subscriptions).values(data);
+  }
+}
+
+// ─── Usage tracking helpers ───────────────────────────────────────────────────
+
+export async function getMonthlyUsage(userId: number, month: number, year: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db
+    .select()
+    .from(usageTracking)
+    .where(and(eq(usageTracking.userId, userId), eq(usageTracking.month, month), eq(usageTracking.year, year)))
+    .limit(1);
+  return result[0] ?? null;
+}
+
+export async function incrementUsage(userId: number, month: number, year: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getMonthlyUsage(userId, month, year);
+  if (existing) {
+    await db
+      .update(usageTracking)
+      .set({ scaffoldsGenerated: existing.scaffoldsGenerated + 1, updatedAt: new Date() })
+      .where(eq(usageTracking.id, existing.id));
+  } else {
+    await db.insert(usageTracking).values({ userId, month, year, scaffoldsGenerated: 1 });
+  }
+}
+
+// ─── LLM Provider helpers ─────────────────────────────────────────────────────
+
+export async function getLLMProviders() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(llmProviders).orderBy(desc(llmProviders.avgResponseTimeMs));
+}
+
+export async function getLLMProviderByName(name: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(llmProviders).where(eq(llmProviders.name, name)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function updateLLMProviderMetrics(name: string, durationMs: number, success: boolean): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const provider = await getLLMProviderByName(name);
+  if (!provider) return;
+
+  const newAvgTime = Math.round(
+    (provider.avgResponseTimeMs * provider.totalRequests + durationMs) / (provider.totalRequests + 1)
+  );
+  const newFailedCount = success ? provider.failedRequests : provider.failedRequests + 1;
+
+  await db
+    .update(llmProviders)
+    .set({
+      avgResponseTimeMs: newAvgTime,
+      totalRequests: provider.totalRequests + 1,
+      failedRequests: newFailedCount,
+      lastUsedAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(llmProviders.id, provider.id));
+}
+
+export async function initializeLLMProviders(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const providers = ["groq", "gemini", "openrouter"];
+  for (const name of providers) {
+    const existing = await getLLMProviderByName(name);
+    if (!existing) {
+      await db.insert(llmProviders).values({ name, enabled: true });
+    }
+  }
 }

@@ -60,3 +60,57 @@ export const generationLogs = mysqlTable("generation_logs", {
   durationMs: int("durationMs"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+export type GenerationLog = typeof generationLogs.$inferSelect;
+export type InsertGenerationLog = typeof generationLogs.$inferInsert;
+
+/**
+ * User subscription and payment information.
+ * Stores only essential Stripe identifiers; fetch other data from Stripe API.
+ */
+export const subscriptions = mysqlTable("subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 128 }).notNull().unique(),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 128 }),
+  plan: mysqlEnum("plan", ["free", "starter", "pro"]).default("free").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;
+
+/**
+ * Track monthly scaffold generation quota usage per user.
+ */
+export const usageTracking = mysqlTable("usage_tracking", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  month: int("month").notNull(),  // 1-12
+  year: int("year").notNull(),    // e.g., 2026
+  scaffoldsGenerated: int("scaffoldsGenerated").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UsageTracking = typeof usageTracking.$inferSelect;
+export type InsertUsageTracking = typeof usageTracking.$inferInsert;
+
+/**
+ * LLM provider configuration and performance metrics.
+ */
+export const llmProviders = mysqlTable("llm_providers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 32 }).notNull().unique(), // 'groq', 'gemini', 'openrouter'
+  enabled: boolean("enabled").default(true).notNull(),
+  avgResponseTimeMs: int("avgResponseTimeMs").default(0).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  totalRequests: int("totalRequests").default(0).notNull(),
+  failedRequests: int("failedRequests").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LLMProvider = typeof llmProviders.$inferSelect;
+export type InsertLLMProvider = typeof llmProviders.$inferInsert;

@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Studio from "./pages/Studio";
 import Gallery from "./pages/Gallery";
+import Pricing from "./pages/Pricing";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/studio" component={Studio} />
       <Route path="/gallery" component={Gallery} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -27,6 +29,7 @@ function App() {
         <TooltipProvider>
           <Toaster
             theme="dark"
+            position="bottom-right"
             toastOptions={{
               style: {
                 background: "#111117",

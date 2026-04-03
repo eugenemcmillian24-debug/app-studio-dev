@@ -1,16 +1,20 @@
-import { z } from "zod";
 import { COOKIE_NAME } from "@shared/const";
+import { z } from "zod";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateScaffold } from "./scaffold-engine";
 import { generateProjectZip } from "./zip-generator";
+import { paymentRouter } from "./payment-router";
 import {
   saveProject,
   getProjectById,
   getUserProjects,
   getRecentPublicProjects,
   logGeneration,
+  getSubscriptionByUserId,
+  incrementUsage,
+  getMonthlyUsage,
 } from "./db";
 import type { ScaffoldFile } from "../shared/scaffold-types";
 
@@ -44,6 +48,7 @@ function parseProjectRow(row: {
 
 export const appRouter = router({
   system: systemRouter,
+  payment: paymentRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
@@ -55,12 +60,30 @@ export const appRouter = router({
   }),
 
   scaffold: router({
-    // ── Generate a new scaffold ──────────────────────────────────────────────
-    generate: publicProcedure
+    // ── Generate a new scaffold (requires payment) ───────────────────────────
+    generate: protectedProcedure
       .input(z.object({ prompt: z.string().min(10).max(1000) }))
       .mutation(async ({ ctx, input }) => {
         const start = Date.now();
-        const userId = ctx.user?.id ?? null;
+        const userId = ctx.user.id;
+
+        // Check quota
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const year = now.getFullYear();
+        const subscription = await getSubscriptionByUserId(userId);
+        const plan = (subscription?.plan || "free") as "free" | "starter" | "pro";
+        const quotas = { free: 0, starter: 10, pro: 999 };
+        const limit = quotas[plan];
+
+        if (limit === 0) {
+          throw new Error("Free plan has no scaffolds. Please upgrade to Starter or Pro.");
+        }
+
+        const usage = await getMonthlyUsage(userId, month, year);
+        if (usage && usage.scaffoldsGenerated >= limit) {
+          throw new Error(`Monthly quota exceeded. You have ${limit} scaffolds/month on ${plan} plan.`);
+        }
 
         try {
           const scaffold = await generateScaffold(input.prompt);
@@ -82,17 +105,20 @@ export const appRouter = router({
           });
 
           await logGeneration({
-            userId: userId ?? undefined,
+            userId,
             prompt: input.prompt,
             success: true,
             modelUsed: scaffold.aiModel,
             durationMs: Date.now() - start,
           });
 
+          // Increment usage only after successful generation
+          await incrementUsage(userId, month, year);
+
           return { success: true, projectId, scaffold };
         } catch (err) {
           await logGeneration({
-            userId: userId ?? undefined,
+            userId,
             prompt: input.prompt,
             success: false,
             durationMs: Date.now() - start,
@@ -149,7 +175,7 @@ export const appRouter = router({
         }));
       }),
 
-    // ── List current user's projects ─────────────────────────────────────────
+    // ── List user's own projects ─────────────────────────────────────────────
     listMine: protectedProcedure
       .input(z.object({ limit: z.number().min(1).max(50).default(20) }))
       .query(async ({ ctx, input }) => {

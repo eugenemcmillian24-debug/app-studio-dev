@@ -38,8 +38,42 @@
 - [x] Vitest: auth logout (1 test)
 - [x] All 10 tests passing
 
+## Payment System
+- [x] Add Stripe integration via webdev_add_feature
+- [x] Create subscriptions table: userId, stripeCustomerId, plan, createdAt, updatedAt
+- [x] Create usage_tracking table: userId, scaffoldsGenerated, month, year
+- [x] Create payment router with getSubscription, createCheckout, getPricing
+- [x] Create Stripe webhook handler for checkout.session.completed
+- [x] Pricing page with plan comparison and upgrade buttons
+- [x] Display current plan + usage in pricing page
+- [x] Protect scaffold.generate with quota checks (free=0, starter=10, pro=999)
+- [x] Add Pricing route to App.tsx
+- [x] Update Home page with pricing CTA and link
+
+## Multi-LLM System
+- [x] Create llm_providers table: name, enabled, avgResponseTime, lastUsed, totalRequests, failedRequests
+- [x] Create LLM provider abstraction (Groq, Gemini, OpenRouter)
+- [x] Build fallback chain: try Groq → Gemini → OpenRouter (skip disabled)
+- [x] Implement smart rotation: track response times, prioritize fastest
+- [x] Add environment variables: GROQ_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY
+- [x] Create llm-providers.ts with callLLMWithFallback function
+- [x] Create db helpers: getLLMProviders, updateLLMProviderMetrics, initializeLLMProviders
+- [ ] Update scaffold engine to use callLLMWithFallback instead of direct invokeLLM
+- [ ] Log which provider was used for each generation
+- [ ] Show provider info in result view (e.g., "Generated with Groq in 2.3s")
+
+## Frontend Updates
+- [x] Pricing page with plan comparison
+- [x] Checkout button that redirects to Stripe
+- [x] Pricing route in App.tsx
+- [x] Home page with pricing CTA
+- [ ] Show "Upgrade to Pro" modal if user exceeds quota
+- [ ] Display LLM provider + response time in result view
+- [ ] Add admin panel to manage LLM provider keys and status
+
 ## Remaining / Future
-- [ ] Verify LLM generates real AI output consistently (not just fallback)
-- [ ] Mobile-responsive layout improvements
-- [ ] Auth: login to save/access personal project history
-- [ ] Streaming generation progress (SSE)
+- [ ] Update scaffold engine to use multi-LLM fallback chain
+- [ ] Integrate LLM provider metrics into generation logging
+- [ ] Show LLM provider info in Studio result view
+- [ ] Add quota exceeded error handling in Studio UI
+- [ ] Admin dashboard for LLM provider management
