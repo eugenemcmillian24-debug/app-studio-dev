@@ -47,10 +47,17 @@
 - [x] User router: getMyProjects, toggleFavorite, getSettings, updateSettings, env variable CRUD
 - [x] Admin router: getLLMProviders, toggleLLMProvider with admin-only access control
 
+## Phase 2: Admin Access & Payment Enforcement (Completed)
+- [x] Grant admin role to eugenemcmillian9@gmail.com (SQL: UPDATE users SET role = 'admin' WHERE email = 'eugenemcmillian9@gmail.com')
+- [x] Enforce Stripe payment before generation (block free users with quota = 0)
+- [x] Build complete terminal workflow with file display
+- [x] Implement npm install simulation in terminal
+- [x] Implement npm run dev simulation with live output
+- [x] Integrate terminal into Studio result view with Files/Terminal tabs
+- [x] Test end-to-end: payment → generation → terminal (22 tests passing)
+
 ## Future Enhancements (Not Implemented)
-- [ ] Terminal UI for npm install and project setup
 - [ ] GitHub repo integration (create repo from scaffold)
-- [ ] Streaming generation progress (SSE)
 - [ ] Email notifications for quota warnings
 - [ ] Advanced admin panel: user management, billing, analytics
 

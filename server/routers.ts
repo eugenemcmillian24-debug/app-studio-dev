@@ -9,6 +9,7 @@ import { paymentRouter } from "./payment-router";
 import { userRouter } from "./user-router";
 import { adminRouter } from "./admin-router";
 import { githubRouter } from "./github-router";
+import { terminalRouter } from "./terminal-router";
 import {
   saveProject,
   getProjectById,
@@ -55,6 +56,7 @@ export const appRouter = router({
   user: userRouter,
   admin: adminRouter,
   github: githubRouter,
+  terminal: terminalRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

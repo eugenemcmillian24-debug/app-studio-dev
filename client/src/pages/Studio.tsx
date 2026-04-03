@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { CodeViewer } from "@/components/CodeViewer";
 import { FileTree } from "@/components/FileTree";
+import { TerminalUI } from "@/components/TerminalUI";
+import { StreamingStudio } from "@/components/StreamingStudio";
+import { RealTerminal } from "@/components/RealTerminal";
 import type { ScaffoldFile, ScaffoldProject } from "../../../shared/scaffold-types";
 
 const EXAMPLE_CHIPS = [
@@ -44,6 +47,7 @@ export default function Studio() {
   const [generated, setGenerated] = useState<GeneratedState | null>(null);
   const [selectedFile, setSelectedFile] = useState<ScaffoldFile | null>(null);
   const [selectedExtra, setSelectedExtra] = useState<string | null>(null);
+  const [resultTab, setResultTab] = useState<"files" | "terminal">("files");
   const [isDownloading, setIsDownloading] = useState(false);
   const [generatingDots, setGeneratingDots] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -343,16 +347,50 @@ export default function Studio() {
 
         {/* Main layout: sidebar + code viewer */}
         <div className="flex flex-1 overflow-hidden">
-          {/* File tree sidebar */}
-          <div className="w-56 flex-shrink-0 border-r border-border/50 bg-sidebar overflow-hidden">
-            <FileTree
-              files={scaffold.files}
-              selectedPath={selectedFile?.path ?? null}
-              onSelect={(f) => { setSelectedFile(f); setSelectedExtra(null); }}
-              extraFiles={EXTRA_FILES}
-              onSelectExtra={(p) => { setSelectedExtra(p); setSelectedFile(null); }}
-              selectedExtra={selectedExtra}
-            />
+          {/* Sidebar with tabs */}
+          <div className="w-56 flex-shrink-0 border-r border-border/50 bg-sidebar overflow-hidden flex flex-col">
+            {/* Tabs */}
+            <div className="flex border-b border-border/50 sticky top-0 bg-sidebar/95 backdrop-blur">
+              <button
+                onClick={() => setResultTab("files")}
+                className={`flex-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                  resultTab === "files"
+                    ? "border-violet-500 text-violet-400"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Files
+              </button>
+              <button
+                onClick={() => setResultTab("terminal")}
+                className={`flex-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
+                  resultTab === "terminal"
+                    ? "border-violet-500 text-violet-400"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Terminal
+              </button>
+            </div>
+
+            {/* Files tab */}
+            {resultTab === "files" && (
+              <FileTree
+                files={scaffold.files}
+                selectedPath={selectedFile?.path ?? null}
+                onSelect={(f) => { setSelectedFile(f); setSelectedExtra(null); }}
+                extraFiles={EXTRA_FILES}
+                onSelectExtra={(p) => { setSelectedExtra(p); setSelectedFile(null); }}
+                selectedExtra={selectedExtra}
+              />
+            )}
+
+            {/* Terminal tab */}
+            {resultTab === "terminal" && (
+              <div className="flex-1 overflow-hidden p-3">
+                <RealTerminal scaffold={scaffold} projectId={generated.projectId} onDownloadZip={handleDownload} />
+              </div>
+            )}
           </div>
 
           {/* Code viewer */}
