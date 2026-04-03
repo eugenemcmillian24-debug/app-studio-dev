@@ -1,5 +1,6 @@
 import { invokeLLM } from "./_core/llm";
 import type { ScaffoldProject, AppCategory, ScaffoldFile } from "../shared/scaffold-types";
+import { callLLMWithFallback } from "./llm-providers";
 
 // ─── System prompt ────────────────────────────────────────────────────────────
 
@@ -559,9 +560,10 @@ export async function generateScaffold(prompt: string): Promise<ScaffoldProject 
   const start = Date.now();
 
   try {
-    console.log("[ScaffoldEngine] Starting LLM generation for:", prompt.slice(0, 80));
+    console.log("[ScaffoldEngine] Starting multi-LLM generation for:", prompt.slice(0, 80));
 
-    const response = await invokeLLM({
+    // Try multi-LLM fallback chain
+    const llmResult = await callLLMWithFallback({
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -569,26 +571,29 @@ export async function generateScaffold(prompt: string): Promise<ScaffoldProject 
           content: `Generate a complete Next.js + Supabase project scaffold for this idea: ${prompt}\n\nIMPORTANT: Return ONLY a single valid JSON object. No markdown, no code fences, no explanation text. Start your response with { and end with }.`,
         },
       ],
-      max_tokens: 32768,
     });
 
-    const rawContent = response?.choices?.[0]?.message?.content;
-    const text = typeof rawContent === "string" ? rawContent : "";
-    console.log(`[ScaffoldEngine] LLM response length: ${text.length} chars, finish: ${response?.choices?.[0]?.finish_reason}`);
-
-    if (text.length > 100) {
-      const parsed = parseScaffold(text, prompt);
-      if (parsed && parsed.files.length >= 4) {
-        console.log(`[ScaffoldEngine] Successfully parsed ${parsed.files.length} files in ${Date.now() - start}ms`);
-        return { ...parsed, aiModel: "Manus LLM" };
-      } else {
-        console.warn("[ScaffoldEngine] Parse failed or too few files:", parsed?.files?.length ?? 0);
-      }
+    if (!llmResult.success) {
+      console.warn("[ScaffoldEngine] All LLM providers failed:", llmResult.error);
     } else {
-      console.warn("[ScaffoldEngine] LLM response too short:", text.length);
+      const text = llmResult.content;
+      const durationMs = llmResult.durationMs;
+      console.log(`[ScaffoldEngine] LLM response (${llmResult.provider}, ${durationMs}ms): ${text.length} chars`);
+
+      if (text.length > 100) {
+        const parsed = parseScaffold(text, prompt);
+        if (parsed && parsed.files.length >= 4) {
+          console.log(`[ScaffoldEngine] Successfully parsed ${parsed.files.length} files in ${Date.now() - start}ms`);
+          return { ...parsed, aiModel: `${llmResult.provider} (${durationMs}ms)` };
+        } else {
+          console.warn("[ScaffoldEngine] Parse failed or too few files:", parsed?.files?.length ?? 0);
+        }
+      } else {
+        console.warn("[ScaffoldEngine] LLM response too short:", text.length);
+      }
     }
   } catch (err) {
-    console.error("[ScaffoldEngine] LLM error:", err);
+    console.error("[ScaffoldEngine] Generation error:", err);
   }
 
   console.log("[ScaffoldEngine] Using fallback template");

@@ -385,12 +385,21 @@ export default function Studio() {
               {[
                 { label: "Files", value: scaffold.files.length },
                 { label: "Category", value: scaffold.appCategory },
-                { label: "Model", value: scaffold.aiModel ?? "AI" },
+                { label: "LLM Provider", value: scaffold.aiModel ?? "Fallback" },
                 { label: "Stack", value: `${scaffold.techStack.length} deps` },
               ].map(s => (
                 <div key={s.label} className="p-2.5 rounded-xl bg-card border border-border/50">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</p>
-                  <p className="text-xs font-semibold text-foreground mt-0.5 truncate capitalize">{s.value}</p>
+                  <p className="text-xs font-semibold text-foreground mt-0.5 truncate capitalize">
+                    {s.label === "LLM Provider" ? (
+                      <span className="flex items-center gap-1">
+                        <Zap className="size-3" />
+                        {s.value}
+                      </span>
+                    ) : (
+                      s.value
+                    )}
+                  </p>
                 </div>
               ))}
             </div>
