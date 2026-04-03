@@ -6,6 +6,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { generateScaffold } from "./scaffold-engine";
 import { generateProjectZip } from "./zip-generator";
 import { paymentRouter } from "./payment-router";
+import { userRouter } from "./user-router";
+import { adminRouter } from "./admin-router";
 import {
   saveProject,
   getProjectById,
@@ -49,6 +51,8 @@ function parseProjectRow(row: {
 export const appRouter = router({
   system: systemRouter,
   payment: paymentRouter,
+  user: userRouter,
+  admin: adminRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

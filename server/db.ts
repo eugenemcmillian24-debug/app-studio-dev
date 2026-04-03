@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, generatedProjects, generationLogs, InsertGeneratedProject, subscriptions, usageTracking, llmProviders, InsertSubscription, InsertUsageTracking, InsertLLMProvider } from "../drizzle/schema";
+import { InsertUser, users, generatedProjects, generationLogs, InsertGeneratedProject, subscriptions, usageTracking, llmProviders, userProjects, userSettings, userEnvVariables, InsertSubscription, InsertUsageTracking, InsertLLMProvider, InsertUserProject, InsertUserSettings, InsertUserEnvVariable } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -163,6 +163,13 @@ export async function getLLMProviders() {
   return db.select().from(llmProviders).orderBy(desc(llmProviders.avgResponseTimeMs));
 }
 
+export async function updateLLMProvider(name: string, updates: { enabled?: boolean; avgResponseTimeMs?: number }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(llmProviders).set(updates).where(eq(llmProviders.name, name));
+}
+
+
 export async function getLLMProviderByName(name: string) {
   const db = await getDb();
   if (!db) return null;
@@ -203,4 +210,75 @@ export async function initializeLLMProviders(): Promise<void> {
       await db.insert(llmProviders).values({ name, enabled: true });
     }
   }
+}
+
+// ─── User Project Metadata ──────────────────────────────────────────────────────
+
+export async function addUserProject(data: InsertUserProject) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(userProjects).values(data);
+}
+
+export async function toggleProjectFavorite(userId: number, projectId: number, isFavorite: boolean) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(userProjects)
+    .set({ isFavorite })
+    .where(eq(userProjects.userId, userId) && eq(userProjects.projectId, projectId));
+}
+
+// ─── User Settings ────────────────────────────────────────────────────────────
+
+export async function getUserSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(userSettings).where(eq(userSettings.userId, userId)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function upsertUserSettings(userId: number, data: Partial<InsertUserSettings>) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getUserSettings(userId);
+  if (existing) {
+    await db.update(userSettings).set(data).where(eq(userSettings.userId, userId));
+  } else {
+    await db.insert(userSettings).values({ userId, ...data } as InsertUserSettings);
+  }
+}
+
+// ─── User Env Variables ────────────────────────────────────────────────────────
+
+export async function getUserEnvVariables(userId: number, category?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (category) {
+    return await db.select().from(userEnvVariables)
+      .where(eq(userEnvVariables.userId, userId) && eq(userEnvVariables.category, category));
+  }
+  return await db.select().from(userEnvVariables).where(eq(userEnvVariables.userId, userId));
+}
+
+export async function saveUserEnvVariable(data: InsertUserEnvVariable) {
+  const db = await getDb();
+  if (!db) return;
+  // Check if exists
+  const existing = await db.select().from(userEnvVariables)
+    .where(eq(userEnvVariables.userId, data.userId) && eq(userEnvVariables.key, data.key))
+    .limit(1);
+  if (existing.length > 0) {
+    await db.update(userEnvVariables)
+      .set({ encryptedValue: data.encryptedValue, updatedAt: new Date() })
+      .where(eq(userEnvVariables.userId, data.userId) && eq(userEnvVariables.key, data.key));
+  } else {
+    await db.insert(userEnvVariables).values(data);
+  }
+}
+
+export async function deleteUserEnvVariable(userId: number, key: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(userEnvVariables)
+    .where(eq(userEnvVariables.userId, userId) && eq(userEnvVariables.key, key));
 }

@@ -1,72 +1,63 @@
 # AppStudio Full-Stack — TODO
 
-## Database & Backend
-- [x] Add `generated_projects` table to drizzle schema
-- [x] Add `generation_logs` table for analytics
-- [x] Create db query helpers
-- [x] Create tRPC router with scaffold endpoints
+## Core Features (Completed)
+- [x] Database schema: generated_projects + generation_logs tables
+- [x] DB query helpers: saveProject, getProjectById, getUserProjects, getRecentPublicProjects, logGeneration
+- [x] Shared scaffold types (ScaffoldFile, ScaffoldProject, AppCategory)
+- [x] LLM scaffold generation engine with fallback template
+- [x] Improved JSON parsing with brace-depth extraction
+- [x] Zip generator using JSZip (produces valid .zip with all files)
+- [x] tRPC router: scaffold.generate, scaffold.getById, scaffold.downloadZip, scaffold.listRecent, scaffold.listMine
+- [x] Dark theme CSS (violet/cyan palette)
+- [x] Home landing page with hero, features grid, tech stack, CTA
+- [x] Studio page: prompt input, example chips, generating animation, result view
+- [x] Result view: file tree sidebar, syntax-highlighted code viewer, right info panel
+- [x] Download ZIP button (base64 → blob → download)
+- [x] Deploy to Vercel button (pre-wired URL with Supabase env params)
+- [x] FileTree component with folder expand/collapse, file type icons
+- [x] CodeViewer component with syntax highlighting, copy button, line numbers
+- [x] Gallery page: recent public projects with download + deploy buttons
+- [x] Vitest tests: 22 passing
 
-## LLM Scaffold Engine
-- [x] Build system prompt for multi-file Next.js + Supabase scaffold generation
-- [x] Parse LLM JSON response into structured ScaffoldProject type
-- [x] Generate complete project files (app/, components/, lib/, config files)
-- [x] Generate SQL migration and .env.example
-- [x] Fallback template if LLM fails
+## Payment System (Completed)
+- [x] Stripe integration: 3 tiers (Free: 0, Starter: $9/10, Pro: $29/unlimited)
+- [x] Subscription tracking: subscriptions table with stripe_subscription_id
+- [x] Usage tracking: monthly quota enforcement per user
+- [x] Checkout session creation with pre-filled customer info
+- [x] Webhook handling at /api/stripe/webhook with test event support
+- [x] Pricing page with plan comparison and CTA buttons
+- [x] Quota check before scaffold generation
 
-## ZIP Generation
-- [x] Install JSZip on server side
-- [x] tRPC endpoint: downloadZip(projectId)
-- [x] Client: trigger download from base64
+## Multi-LLM System (Completed)
+- [x] LLM provider system: Groq, Gemini, OpenRouter with fallback chain
+- [x] Smart provider rotation: tracks response times, rotates to fastest
+- [x] LLM provider keys configured: GROQ_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY
+- [x] Provider metrics tracking: avgResponseTimeMs, totalRequests, failedRequests
+- [x] LLM provider info logged and displayed (e.g., "Groq (2345ms)")
 
-## Frontend UI
-- [x] Dark theme with violet/cyan gradient
-- [x] Landing hero with prompt input
-- [x] Generating animation/progress screen
-- [x] File tree sidebar with collapsible folders
-- [x] Code viewer with syntax highlighting
-- [x] Download ZIP button
-- [x] Deploy to Vercel button
-- [x] Project gallery
-- [x] Toast notifications
+## Optional Enhancements (Completed)
+- [x] User authentication: login via Manus OAuth (already integrated)
+- [x] Project history: getUserProjects, addUserProject, toggleProjectFavorite
+- [x] User settings: theme, emailNotifications, githubUsername
+- [x] Quota exceeded modal: shows current usage, upgrade prompt, pricing link
+- [x] Admin panel at /admin: LLM provider management, enable/disable, metrics display
+- [x] Encryption utility: encryptValue/decryptValue for secure env storage
+- [x] User env variables: saveUserEnvVariable, getUserEnvVariables, deleteUserEnvVariable
+- [x] Secure env storage: encrypted storage for Supabase, Vercel, GitHub credentials
+- [x] User router: getMyProjects, toggleFavorite, getSettings, updateSettings, env variable CRUD
+- [x] Admin router: getLLMProviders, toggleLLMProvider with admin-only access control
 
-## Tests
-- [x] Vitest: 22 tests passing
-- [x] All TypeScript checks passing (0 errors)
-
-## Payment System
-- [x] Stripe integration with 3 pricing tiers (Free/Starter/Pro)
-- [x] Subscriptions table and usage tracking
-- [x] Payment router with checkout and webhook handling
-- [x] Pricing page with plan comparison
-- [x] Quota protection in scaffold generation
-- [x] Stripe webhook at /api/stripe/webhook
-
-## Multi-LLM System
-- [x] LLM provider abstraction (Groq, Gemini, OpenRouter)
-- [x] Fallback chain implementation
-- [x] Smart rotation based on response times
-- [x] Environment variables configured and validated
-- [x] Integration into scaffold engine
-- [x] LLM provider info displayed in result view
-
-## Completed Features Summary
-✅ Full-stack scaffold generation (12-14 files per project)
-✅ Supabase SQL schema generation with RLS policies
-✅ Downloadable .zip files ready for npm install
-✅ One-click Vercel deployment with pre-wired env params
-✅ Interactive file tree with syntax-highlighted code preview
-✅ Payment system: Stripe integration with 3 pricing tiers
-✅ Multi-LLM support: Groq, Gemini, OpenRouter with smart fallback chain
-✅ Quota protection: monthly usage tracking and enforcement
-✅ Pricing page with plan comparison and upgrade flow
-✅ LLM provider metrics: response time tracking and display
-✅ 22 tests passing (scaffold, payment, auth, LLM validation)
-✅ Stripe webhook handler at /api/stripe/webhook
-✅ All TypeScript checks passing (0 errors)
-
-## Future Enhancements
-- [ ] Quota exceeded modal with upgrade prompt in Studio
-- [ ] Admin panel for LLM provider key management
+## Future Enhancements (Not Implemented)
+- [ ] Terminal UI for npm install and project setup
+- [ ] GitHub repo integration (create repo from scaffold)
 - [ ] Streaming generation progress (SSE)
-- [ ] User authentication and project history
-- [ ] API access for programmatic scaffold generation
+- [ ] Email notifications for quota warnings
+- [ ] Advanced admin panel: user management, billing, analytics
+
+## Test Coverage
+- 22 vitest tests passing
+- Payment system tests (API key validation, subscription logic)
+- Scaffold generation tests (file structure, zip content)
+- Auth tests (logout, session handling)
+- TypeScript: 0 errors
+- Dev server: running and healthy

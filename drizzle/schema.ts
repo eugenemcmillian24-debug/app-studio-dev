@@ -114,3 +114,54 @@ export const llmProviders = mysqlTable("llm_providers", {
 
 export type LLMProvider = typeof llmProviders.$inferSelect;
 export type InsertLLMProvider = typeof llmProviders.$inferInsert;
+
+/**
+ * User project favorites and metadata.
+ */
+export const userProjects = mysqlTable("user_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  projectId: int("projectId").notNull(),
+  isFavorite: boolean("isFavorite").default(false).notNull(),
+  customName: varchar("customName", { length: 128 }),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserProject = typeof userProjects.$inferSelect;
+export type InsertUserProject = typeof userProjects.$inferInsert;
+
+/**
+ * User settings and preferences.
+ */
+export const userSettings = mysqlTable("user_settings", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  theme: mysqlEnum("theme", ["light", "dark"]).default("dark").notNull(),
+  emailNotifications: boolean("emailNotifications").default(true).notNull(),
+  githubUsername: varchar("githubUsername", { length: 64 }),
+  githubToken: text("githubToken"), // Encrypted
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = typeof userSettings.$inferInsert;
+
+/**
+ * Encrypted environment variables stored per user.
+ * Used for Supabase, Vercel, and other credentials.
+ */
+export const userEnvVariables = mysqlTable("user_env_variables", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  key: varchar("key", { length: 128 }).notNull(), // e.g., SUPABASE_URL
+  encryptedValue: text("encryptedValue").notNull(), // AES-256 encrypted
+  category: varchar("category", { length: 32 }).notNull(), // 'supabase', 'vercel', 'github'
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserEnvVariable = typeof userEnvVariables.$inferSelect;
+export type InsertUserEnvVariable = typeof userEnvVariables.$inferInsert;
