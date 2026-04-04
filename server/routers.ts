@@ -1,5 +1,6 @@
 import { COOKIE_NAME } from "@shared/const";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
@@ -19,7 +20,11 @@ import {
   getSubscriptionByUserId,
   incrementUsage,
   getMonthlyUsage,
+
+  getDb,
 } from "./db";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import type { ScaffoldFile } from "../shared/scaffold-types";
 
 // ─── Helper: parse stored JSON fields ────────────────────────────────────────
@@ -65,6 +70,75 @@ export const appRouter = router({
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+    signup: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(8),
+        name: z.string().min(2),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error("Database not available");
+
+          // Check if user exists
+          const existing = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+          if (existing.length > 0) {
+            return { success: false, message: "Email already registered" };
+          }
+
+          // Hash password
+          const passwordHash = await bcrypt.hash(input.password, 10);
+
+          // Create user
+          await db.insert(users).values({
+            email: input.email,
+            name: input.name,
+            passwordHash,
+            openId: `local_${Date.now()}`,
+            loginMethod: "email",
+            role: "user",
+          });
+
+          return { success: true, message: "Account created successfully" };
+        } catch (error) {
+          console.error("Signup error:", error);
+          return { success: false, message: "Sign up failed" };
+        }
+      }),
+    signin: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(1),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const db = await getDb();
+          if (!db) throw new Error("Database not available");
+
+          // Find user by email
+          const userRows = await db.select().from(users).where(eq(users.email, input.email)).limit(1);
+          if (userRows.length === 0) {
+            return { success: false, message: "Invalid email or password" };
+          }
+
+          const user = userRows[0];
+          if (!user.passwordHash) {
+            return { success: false, message: "This account uses OAuth only" };
+          }
+
+          // Verify password
+          const isValid = await bcrypt.compare(input.password, user.passwordHash);
+          if (!isValid) {
+            return { success: false, message: "Invalid email or password" };
+          }
+
+          return { success: true, message: "Sign in successful", userId: user.id };
+        } catch (error) {
+          console.error("Signin error:", error);
+          return { success: false, message: "Sign in failed" };
+        }
+      }),
   }),
 
   scaffold: router({

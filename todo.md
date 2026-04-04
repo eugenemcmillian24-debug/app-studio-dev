@@ -68,3 +68,11 @@
 - Auth tests (logout, session handling)
 - TypeScript: 0 errors
 - Dev server: running and healthy
+
+
+## Auth Sign Up / Sign In (Completed)
+- [x] Create sign up page with email/password form
+- [x] Create sign in page with email/password form
+- [x] Add auth router with signup/signin procedures
+- [x] Grant admin access to newordermedia79@gmail.com (SQL: UPDATE users SET role = 'admin' WHERE email = 'newordermedia79@gmail.com')
+- [x] Test auth flow end-to-end (22 tests passing)

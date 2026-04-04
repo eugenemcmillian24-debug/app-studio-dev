@@ -29,6 +29,13 @@
       "when": 1775255271350,
       "tag": "0003_right_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775263782887,
+      "tag": "0004_dashing_sersi",
+      "breakpoints": true
     }
   ]
 }
