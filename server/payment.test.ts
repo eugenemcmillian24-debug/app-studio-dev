@@ -36,7 +36,6 @@ describe("Payment System", () => {
   });
 
   it("should have correct pricing plans", () => {
-    expect(PRICING_PLANS.free.scaffolds).toBe(0);
     expect(PRICING_PLANS.starter.scaffolds).toBe(10);
     expect(PRICING_PLANS.pro.scaffolds).toBe(999);
     expect(PRICING_PLANS.starter.price).toBe(900); // $9

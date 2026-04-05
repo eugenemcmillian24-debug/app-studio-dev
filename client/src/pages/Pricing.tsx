@@ -86,10 +86,10 @@ export default function Pricing() {
         )}
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {plans.map((plan) => {
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          {plans.filter(p => p.id !== "free").map((plan) => {
             const isCurrentPlan = currentPlan === plan.id;
-            const isFree = plan.id === "free";
+            const isFree = false;
 
             return (
               <Card
@@ -115,16 +115,10 @@ export default function Pricing() {
 
                   {/* Price */}
                   <div className="mb-6">
-                    {isFree ? (
-                      <p className="text-4xl font-bold text-white">Free</p>
-                    ) : (
-                      <>
-                        <p className="text-4xl font-bold text-white">
-                          ${(plan.price / 100).toFixed(0)}
-                        </p>
-                        <p className="text-slate-400">/month</p>
-                      </>
-                    )}
+                    <p className="text-4xl font-bold text-white">
+                      ${(plan.price / 100).toFixed(0)}
+                    </p>
+                    <p className="text-slate-400">/month</p>
                   </div>
 
                   {/* Scaffolds */}
@@ -174,14 +168,7 @@ export default function Pricing() {
                   </ul>
 
                   {/* CTA Button */}
-                  {isFree ? (
-                    <Button
-                      disabled
-                      className="w-full bg-slate-700 text-slate-400 cursor-not-allowed"
-                    >
-                      Current Plan
-                    </Button>
-                  ) : isCurrentPlan ? (
+                  {isCurrentPlan ? (
                     <Button
                       disabled
                       className="w-full bg-violet-600 text-white cursor-not-allowed"

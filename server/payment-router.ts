@@ -13,7 +13,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 // ─── Pricing Plans ────────────────────────────────────────────────────────────
 
 export const PRICING_PLANS = {
-  free: { name: "Free", scaffolds: 0, price: 0 },
   starter: { name: "Starter", scaffolds: 10, price: 900 }, // $9/month in cents
   pro: { name: "Pro", scaffolds: 999, price: 2900 }, // $29/month in cents
 } as const;
@@ -33,7 +32,7 @@ export const paymentRouter = router({
     const year = now.getFullYear();
     const usage = await getMonthlyUsage(ctx.user.id, month, year);
 
-    const plan = (subscription?.plan || "free") as keyof typeof PRICING_PLANS;
+    const plan = (subscription?.plan || "starter") as keyof typeof PRICING_PLANS;
     const planInfo = PRICING_PLANS[plan];
 
     return {
@@ -113,10 +112,12 @@ export const paymentRouter = router({
    * Get list of pricing plans.
    */
   getPricing: publicProcedure.query(() => {
-    return Object.entries(PRICING_PLANS).map(([key, value]) => ({
-      id: key,
-      ...value,
-    }));
+    return Object.entries(PRICING_PLANS)
+      .filter(([key]) => key !== "free")
+      .map(([key, value]) => ({
+        id: key,
+        ...value,
+      }));
   }),
 });
 
