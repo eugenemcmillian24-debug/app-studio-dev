@@ -32,6 +32,7 @@ import { monetizationRouter } from "./monetization-router";
 import { marketplaceRouter } from "./marketplace-router";
 import { qualityRouter } from "./quality-router";
 import { integrationsRouter } from "./integrations-router";
+import { webhookDeliveryRouter } from "./webhook-delivery-router";
 import {
   saveProject,
   getProjectById,
@@ -89,6 +90,7 @@ export const appRouter = router({
   marketplace: marketplaceRouter,
   quality: qualityRouter,
   integrations: integrationsRouter,
+  webhookDelivery: webhookDeliveryRouter,
   user: userRouter,
   admin: adminRouter,
   github: githubRouter,

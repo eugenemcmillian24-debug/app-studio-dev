@@ -11,6 +11,8 @@ import Admin from "./pages/Admin";
 import Studio from "./pages/Studio";
 import Gallery from "./pages/Gallery";
 import Pricing from "./pages/Pricing";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import Marketplace from "./pages/Marketplace";
 
 function Router() {
   return (
@@ -22,6 +24,8 @@ function Router() {
       <Route path="/gallery" component={Gallery} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/admin" component={Admin} />
+      <Route path="/analytics" component={AnalyticsDashboard} />
+      <Route path="/marketplace" component={Marketplace} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

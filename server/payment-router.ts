@@ -66,46 +66,57 @@ export const paymentRouter = router({
       }
 
       // Create checkout session
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name: `${planInfo.name} Plan`,
-                description: `${planInfo.scaffolds === 999 ? "Unlimited" : planInfo.scaffolds} scaffolds per month`,
+      try {
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: `${planInfo.name} Plan`,
+                  description: `${planInfo.scaffolds === 999 ? "Unlimited" : planInfo.scaffolds} scaffolds per month`,
+                },
+                unit_amount: planInfo.price, // Price is already in cents (e.g., 900 = $9.00)
+                recurring: {
+                  interval: "month",
+                  interval_count: 1,
+                },
               },
-              unit_amount: planInfo.price,
-              recurring: {
-                interval: "month",
-                interval_count: 1,
-              },
+              quantity: 1,
             },
-            quantity: 1,
+          ],
+          mode: "subscription",
+          success_url: `${ctx.req.headers.origin || "http://localhost:3000"}/studio?payment=success`,
+          cancel_url: `${ctx.req.headers.origin || "http://localhost:3000"}/pricing?payment=cancelled`,
+          client_reference_id: ctx.user.id.toString(),
+          metadata: {
+            userId: ctx.user.id.toString(),
+            plan,
           },
-        ],
-        mode: "subscription",
-        success_url: `${ctx.req.headers.origin || "http://localhost:3000"}/studio?payment=success`,
-        cancel_url: `${ctx.req.headers.origin || "http://localhost:3000"}/pricing?payment=cancelled`,
-        client_reference_id: ctx.user.id.toString(),
-        metadata: {
-          userId: ctx.user.id.toString(),
-          plan,
-        },
-      } as any);
-
-      // Save customer ID if new
-      if (!subscription) {
-        await upsertSubscription({
-          userId: ctx.user.id,
-          stripeCustomerId: customerId,
-          plan: "free",
+          allow_promotion_codes: true,
         });
-      }
 
-      return { checkoutUrl: session.url };
+        if (!session.url) {
+          throw new Error("Stripe session created but no checkout URL returned");
+        }
+
+        // Save customer ID if new
+        if (!subscription) {
+          await upsertSubscription({
+            userId: ctx.user.id,
+            stripeCustomerId: customerId,
+            plan: "free",
+          });
+        }
+
+        return { checkoutUrl: session.url };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown Stripe error";
+        console.error("[Stripe] Checkout session creation failed:", errorMessage);
+        throw new Error(`Failed to create checkout session: ${errorMessage}`);
+      }
     }),
 
   /**

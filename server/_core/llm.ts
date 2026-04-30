@@ -279,8 +279,18 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
+  // Select model based on provider or use default
+  // All models are free tier and up-to-date
+  const modelMap: Record<string, string> = {
+    gemini: "gemini-2.5-flash", // Latest Gemini 2.5 Flash (free)
+    groq: "mixtral-8x7b-32768", // Groq's free fast model
+    openrouter: "meta-llama/llama-2-70b-chat", // OpenRouter free tier
+  };
+
+  const selectedModel = modelMap.gemini; // Default to Gemini (most capable free model)
+
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model: selectedModel,
     messages: messages.map(normalizeMessage),
   };
 
@@ -296,10 +306,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
+  payload.max_tokens = 32768;
   payload.thinking = {
-    "budget_tokens": 128
-  }
+    budget_tokens: 128,
+  };
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
@@ -312,6 +322,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
+  // Log model selection for monitoring
+  console.log(`[LLM] Using model: ${selectedModel}`);
+
+  // All models use the same Manus Forge API endpoint
   const response = await fetch(resolveApiUrl(), {
     method: "POST",
     headers: {
