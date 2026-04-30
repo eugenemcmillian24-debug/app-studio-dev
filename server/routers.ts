@@ -20,6 +20,9 @@ import { schemaEditorRouter } from "./schema-editor-router";
 import { exportRouter } from "./export-router";
 import { historyRouter } from "./history-router";
 import { collaborationRouter } from "./collaboration-router";
+import { themeRouter } from "./theme-router";
+import { searchRouter } from "./search-router";
+import { shortcutsRouter } from "./shortcuts-router";
 import {
   saveProject,
   getProjectById,
@@ -80,6 +83,9 @@ export const appRouter = router({
   exports: exportRouter,
   history: historyRouter,
   collaboration: collaborationRouter,
+  theme: themeRouter,
+  search: searchRouter,
+  shortcuts: shortcutsRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
