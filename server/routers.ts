@@ -11,6 +11,15 @@ import { userRouter } from "./user-router";
 import { adminRouter } from "./admin-router";
 import { githubRouter } from "./github-router";
 import { terminalRouter } from "./terminal-router";
+import { templatesRouter } from "./templates-router";
+import { notificationsRouter } from "./notifications-router";
+import { collectionsRouter } from "./collections-router";
+import { apiDocsRouter } from "./api-docs-router";
+import { domainsRouter } from "./domains-router";
+import { schemaEditorRouter } from "./schema-editor-router";
+import { exportRouter } from "./export-router";
+import { historyRouter } from "./history-router";
+import { collaborationRouter } from "./collaboration-router";
 import {
   saveProject,
   getProjectById,
@@ -62,6 +71,15 @@ export const appRouter = router({
   admin: adminRouter,
   github: githubRouter,
   terminal: terminalRouter,
+  templates: templatesRouter,
+  notifications: notificationsRouter,
+  collections: collectionsRouter,
+  apiDocs: apiDocsRouter,
+  domains: domainsRouter,
+  schemaEditor: schemaEditorRouter,
+  exports: exportRouter,
+  history: historyRouter,
+  collaboration: collaborationRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

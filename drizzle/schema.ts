@@ -166,3 +166,184 @@ export const userEnvVariables = mysqlTable("user_env_variables", {
 
 export type UserEnvVariable = typeof userEnvVariables.$inferSelect;
 export type InsertUserEnvVariable = typeof userEnvVariables.$inferInsert;
+
+/**
+ * GitHub repository integration for generated projects.
+ */
+export const githubRepos = mysqlTable("github_repos", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  projectId: int("projectId").notNull(),
+  repoUrl: varchar("repoUrl", { length: 256 }).notNull(),
+  repoName: varchar("repoName", { length: 128 }).notNull(),
+  repoOwner: varchar("repoOwner", { length: 128 }).notNull(),
+  lastPushedAt: timestamp("lastPushedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GitHubRepo = typeof githubRepos.$inferSelect;
+export type InsertGitHubRepo = typeof githubRepos.$inferInsert;
+
+/**
+ * Email notifications log for quota warnings, generation status, etc.
+ */
+export const emailNotifications = mysqlTable("email_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["quota_warning", "generation_complete", "payment_receipt", "system_alert"]).notNull(),
+  subject: varchar("subject", { length: 256 }).notNull(),
+  body: text("body").notNull(),
+  sentAt: timestamp("sentAt").defaultNow().notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EmailNotification = typeof emailNotifications.$inferSelect;
+export type InsertEmailNotification = typeof emailNotifications.$inferInsert;
+
+/**
+ * Project templates for quick scaffolding.
+ */
+export const projectTemplates = mysqlTable("project_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 32 }).notNull(),
+  prompt: text("prompt").notNull(),
+  techStack: text("techStack").notNull(),
+  icon: varchar("icon", { length: 64 }),
+  isPublic: boolean("isPublic").default(true).notNull(),
+  createdBy: int("createdBy"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ProjectTemplate = typeof projectTemplates.$inferSelect;
+export type InsertProjectTemplate = typeof projectTemplates.$inferInsert;
+
+/**
+ * API documentation for generated projects.
+ */
+export const apiDocumentation = mysqlTable("api_documentation", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  openApiSpec: text("openApiSpec").notNull(),
+  swaggerUrl: varchar("swaggerUrl", { length: 256 }),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ApiDocumentation = typeof apiDocumentation.$inferSelect;
+export type InsertApiDocumentation = typeof apiDocumentation.$inferInsert;
+
+/**
+ * Database schema editor: stores user modifications to generated schemas.
+ */
+export const schemaEdits = mysqlTable("schema_edits", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  userId: int("userId").notNull(),
+  originalSchema: text("originalSchema").notNull(),
+  modifiedSchema: text("modifiedSchema").notNull(),
+  changeDescription: text("changeDescription"),
+  appliedAt: timestamp("appliedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SchemaEdit = typeof schemaEdits.$inferSelect;
+export type InsertSchemaEdit = typeof schemaEdits.$inferInsert;
+
+/**
+ * Project collections for organizing user's projects.
+ */
+export const projectCollections = mysqlTable("project_collections", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  color: varchar("color", { length: 7 }).default("#6366f1"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProjectCollection = typeof projectCollections.$inferSelect;
+export type InsertProjectCollection = typeof projectCollections.$inferInsert;
+
+/**
+ * Junction table: projects in collections.
+ */
+export const collectionProjects = mysqlTable("collection_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  collectionId: int("collectionId").notNull(),
+  projectId: int("projectId").notNull(),
+  addedAt: timestamp("addedAt").defaultNow().notNull(),
+});
+
+export type CollectionProject = typeof collectionProjects.$inferSelect;
+export type InsertCollectionProject = typeof collectionProjects.$inferInsert;
+
+/**
+ * Collaborative sharing: team members access to projects.
+ */
+export const projectShares = mysqlTable("project_shares", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  ownerId: int("ownerId").notNull(),
+  sharedWithEmail: varchar("sharedWithEmail", { length: 320 }).notNull(),
+  permission: mysqlEnum("permission", ["view", "edit", "admin"]).default("view").notNull(),
+  sharedAt: timestamp("sharedAt").defaultNow().notNull(),
+});
+
+export type ProjectShare = typeof projectShares.$inferSelect;
+export type InsertProjectShare = typeof projectShares.$inferInsert;
+
+/**
+ * Custom domains for deployed generated apps.
+ */
+export const customDomains = mysqlTable("custom_domains", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  userId: int("userId").notNull(),
+  domain: varchar("domain", { length: 256 }).notNull().unique(),
+  verificationToken: varchar("verificationToken", { length: 128 }),
+  isVerified: boolean("isVerified").default(false).notNull(),
+  deploymentUrl: varchar("deploymentUrl", { length: 256 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  verifiedAt: timestamp("verifiedAt"),
+});
+
+export type CustomDomain = typeof customDomains.$inferSelect;
+export type InsertCustomDomain = typeof customDomains.$inferInsert;
+
+/**
+ * Generation history with detailed metadata.
+ */
+export const generationHistory = mysqlTable("generation_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  projectId: int("projectId"),
+  prompt: text("prompt").notNull(),
+  llmProvider: varchar("llmProvider", { length: 32 }),
+  tokenCount: int("tokenCount"),
+  durationMs: int("durationMs"),
+  success: boolean("success").default(true).notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GenerationHistory = typeof generationHistory.$inferSelect;
+export type InsertGenerationHistory = typeof generationHistory.$inferInsert;
+
+/**
+ * Export format preferences for projects.
+ */
+export const exportFormats = mysqlTable("export_formats", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  format: mysqlEnum("format", ["individual", "monorepo", "turborepo"]).default("individual").notNull(),
+  exportedAt: timestamp("exportedAt").defaultNow().notNull(),
+  downloadUrl: varchar("downloadUrl", { length: 256 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ExportFormat = typeof exportFormats.$inferSelect;
+export type InsertExportFormat = typeof exportFormats.$inferInsert;
