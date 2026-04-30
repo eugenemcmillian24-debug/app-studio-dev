@@ -43,6 +43,13 @@
       "when": 1777527087493,
       "tag": "0005_curly_gargoyle",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1777533208570,
+      "tag": "0006_sweet_mathemanic",
+      "breakpoints": true
     }
   ]
 }

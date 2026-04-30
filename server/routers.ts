@@ -24,6 +24,14 @@ import { themeRouter } from "./theme-router";
 import { searchRouter } from "./search-router";
 import { shortcutsRouter } from "./shortcuts-router";
 import { githubIntegrationRouter } from "./github-integration-router";
+import { analyticsRouter } from "./analytics-router";
+import { collaborationAdvancedRouter } from "./collaboration-advanced-router";
+import { advancedGenerationRouter } from "./advanced-generation-router";
+import { devtoolsRouter } from "./devtools-router";
+import { monetizationRouter } from "./monetization-router";
+import { marketplaceRouter } from "./marketplace-router";
+import { qualityRouter } from "./quality-router";
+import { integrationsRouter } from "./integrations-router";
 import {
   saveProject,
   getProjectById,
@@ -73,6 +81,14 @@ function parseProjectRow(row: {
 export const appRouter = router({
   system: systemRouter,
   payment: paymentRouter,
+  analytics: analyticsRouter,
+  collaborationAdvanced: collaborationAdvancedRouter,
+  advancedGeneration: advancedGenerationRouter,
+  devtools: devtoolsRouter,
+  monetization: monetizationRouter,
+  marketplace: marketplaceRouter,
+  quality: qualityRouter,
+  integrations: integrationsRouter,
   user: userRouter,
   admin: adminRouter,
   github: githubRouter,
