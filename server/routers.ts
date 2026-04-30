@@ -38,6 +38,8 @@ import {
 } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { ONE_YEAR_MS } from "@shared/const";
+import { sdk } from "./_core/sdk";
 import type { ScaffoldFile } from "../shared/scaffold-types";
 
 // ─── Helper: parse stored JSON fields ────────────────────────────────────────
@@ -137,7 +139,7 @@ export const appRouter = router({
         email: z.string().email(),
         password: z.string().min(1),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         try {
           const db = await getDb();
           if (!db) throw new Error("Database not available");
@@ -158,6 +160,11 @@ export const appRouter = router({
           if (!isValid) {
             return { success: false, message: "Invalid email or password" };
           }
+
+          // Create session token and set cookie (same pattern as OAuth callback)
+          const sessionToken = await sdk.createSessionToken(user.openId, { name: user.name || "" });
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
           return { success: true, message: "Sign in successful", userId: user.id };
         } catch (error) {

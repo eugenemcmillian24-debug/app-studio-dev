@@ -1,13 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface StreamEvent {
-  type: "step" | "error" | "complete";
-  data: any;
-}
+import { trpc } from "@/lib/trpc";
 
 interface StreamingStudioProps {
   prompt: string;
@@ -19,53 +15,36 @@ export function StreamingStudio({ prompt, onComplete }: StreamingStudioProps) {
   const [steps, setSteps] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
-  const startStreaming = () => {
+  const generateMutation = trpc.scaffold.generate.useMutation({
+    onSuccess: (data) => {
+      setResult(data);
+      setIsStreaming(false);
+      setSteps(prev => [...prev, "Generation complete!"]);
+      if (onComplete) onComplete(data);
+      toast.success("Scaffold generated successfully!");
+    },
+    onError: (error) => {
+      setError(error.message || "Generation failed");
+      setIsStreaming(false);
+      toast.error(error.message || "Generation failed");
+    },
+  });
+
+  const startStreaming = async () => {
     setIsStreaming(true);
-    setSteps([]);
+    setSteps(["Starting generation..."]);
     setError(null);
     setResult(null);
 
-    // Create EventSource for SSE
-    const eventSource = new EventSource(
-      `/api/scaffold/stream?prompt=${encodeURIComponent(prompt)}`
-    );
-    eventSourceRef.current = eventSource;
-
-    eventSource.addEventListener("step", (e: any) => {
-      const data = JSON.parse(e.data);
-      setSteps(prev => [...prev, data.message]);
-    });
-
-    eventSource.addEventListener("complete", (e: any) => {
-      const data = JSON.parse(e.data);
-      setResult(data.scaffold);
-      setIsStreaming(false);
-      eventSource.close();
-      if (onComplete) onComplete(data);
-      toast.success("Scaffold generated successfully!");
-    });
-
-    eventSource.addEventListener("error", (e: any) => {
-      const data = JSON.parse(e.data);
-      setError(data.message);
-      setIsStreaming(false);
-      eventSource.close();
-      toast.error(data.message);
-    });
-
-    eventSource.onerror = () => {
-      setError("Connection lost");
-      setIsStreaming(false);
-      eventSource.close();
-    };
+    try {
+      await generateMutation.mutateAsync({ prompt });
+    } catch (err) {
+      console.error("Generation error:", err);
+    }
   };
 
   const stopStreaming = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-    }
     setIsStreaming(false);
   };
 
@@ -74,7 +53,7 @@ export function StreamingStudio({ prompt, onComplete }: StreamingStudioProps) {
       {/* Control Button */}
       <Button
         onClick={isStreaming ? stopStreaming : startStreaming}
-        disabled={!prompt}
+        disabled={!prompt || isStreaming}
         className="w-full"
         size="lg"
       >
@@ -84,7 +63,7 @@ export function StreamingStudio({ prompt, onComplete }: StreamingStudioProps) {
             Generating...
           </>
         ) : (
-          "Generate with Streaming"
+          "Generate Scaffold"
         )}
       </Button>
 
