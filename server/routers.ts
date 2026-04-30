@@ -23,6 +23,7 @@ import { collaborationRouter } from "./collaboration-router";
 import { themeRouter } from "./theme-router";
 import { searchRouter } from "./search-router";
 import { shortcutsRouter } from "./shortcuts-router";
+import { githubIntegrationRouter } from "./github-integration-router";
 import {
   saveProject,
   getProjectById,
@@ -86,6 +87,7 @@ export const appRouter = router({
   theme: themeRouter,
   search: searchRouter,
   shortcuts: shortcutsRouter,
+  githubIntegration: githubIntegrationRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
