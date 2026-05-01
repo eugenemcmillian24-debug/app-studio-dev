@@ -13,6 +13,8 @@ import Gallery from "./pages/Gallery";
 import Pricing from "./pages/Pricing";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import Marketplace from "./pages/Marketplace";
+import AdminDashboard from "./pages/AdminDashboard";
+import WebhookConsole from "./pages/WebhookConsole";
 
 function Router() {
   return (
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/admin" component={Admin} />
       <Route path="/analytics" component={AnalyticsDashboard} />
       <Route path="/marketplace" component={Marketplace} />
+      <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/webhook-console" component={WebhookConsole} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
