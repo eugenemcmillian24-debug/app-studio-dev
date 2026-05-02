@@ -15,6 +15,9 @@ import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import Marketplace from "./pages/Marketplace";
 import AdminDashboard from "./pages/AdminDashboard";
 import WebhookConsole from "./pages/WebhookConsole";
+import VerifyEmail from "./pages/VerifyEmail";
+import Onboarding from "./pages/Onboarding";
+import Referrals from "./pages/Referrals";
 
 function Router() {
   return (
@@ -30,6 +33,9 @@ function Router() {
       <Route path="/marketplace" component={Marketplace} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route path="/webhook-console" component={WebhookConsole} />
+      <Route path="/verify-email" component={VerifyEmail} />
+      <Route path="/onboarding" component={Onboarding} />
+      <Route path="/referrals" component={Referrals} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
