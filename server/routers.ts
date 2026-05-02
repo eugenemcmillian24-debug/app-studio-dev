@@ -24,6 +24,7 @@ import { themeRouter } from "./theme-router";
 import { searchRouter } from "./search-router";
 import { shortcutsRouter } from "./shortcuts-router";
 import { githubIntegrationRouter } from "./github-integration-router";
+import { vercelIntegrationRouter } from "./vercel-integration";
 import { analyticsRouter } from "./analytics-router";
 import { collaborationAdvancedRouter } from "./collaboration-advanced-router";
 import { advancedGenerationRouter } from "./advanced-generation-router";
@@ -94,6 +95,7 @@ export const appRouter = router({
   user: userRouter,
   admin: adminRouter,
   github: githubRouter,
+  vercel: vercelIntegrationRouter,
   terminal: terminalRouter,
   templates: templatesRouter,
   notifications: notificationsRouter,
