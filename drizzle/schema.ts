@@ -617,3 +617,206 @@ export const apiQuotas = mysqlTable("api_quotas", {
 
 export type APIQuota = typeof apiQuotas.$inferSelect;
 export type InsertAPIQuota = typeof apiQuotas.$inferInsert;
+
+
+/**
+ * GitHub OAuth integration for users
+ */
+export const githubIntegrations = mysqlTable("github_integrations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  githubUserId: int("githubUserId").notNull().unique(),
+  githubUsername: varchar("githubUsername", { length: 128 }).notNull(),
+  githubEmail: varchar("githubEmail", { length: 256 }),
+  accessToken: text("accessToken").notNull(), // Encrypted
+  refreshToken: text("refreshToken"), // Encrypted
+  tokenExpiresAt: timestamp("tokenExpiresAt"),
+  scope: varchar("scope", { length: 512 }),
+  connectedAt: timestamp("connectedAt").defaultNow().notNull(),
+  lastSyncAt: timestamp("lastSyncAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type GitHubIntegration = typeof githubIntegrations.$inferSelect;
+export type InsertGitHubIntegration = typeof githubIntegrations.$inferInsert;
+
+/**
+ * Vercel deployment integration for users
+ */
+export const vercelIntegrations = mysqlTable("vercel_integrations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  vercelUserId: varchar("vercelUserId", { length: 128 }).notNull().unique(),
+  vercelUsername: varchar("vercelUsername", { length: 128 }).notNull(),
+  accessToken: text("accessToken").notNull(), // Encrypted
+  teamId: varchar("teamId", { length: 128 }),
+  scope: varchar("scope", { length: 512 }),
+  connectedAt: timestamp("connectedAt").defaultNow().notNull(),
+  lastSyncAt: timestamp("lastSyncAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type VercelIntegration = typeof vercelIntegrations.$inferSelect;
+export type InsertVercelIntegration = typeof vercelIntegrations.$inferInsert;
+
+/**
+ * GitHub repository linked to generated projects
+ */
+export const projectGitHubRepos = mysqlTable("project_github_repos", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  userId: int("userId").notNull(),
+  githubRepoId: int("githubRepoId").notNull(),
+  repoUrl: varchar("repoUrl", { length: 256 }).notNull(),
+  repoName: varchar("repoName", { length: 128 }).notNull(),
+  repoOwner: varchar("repoOwner", { length: 128 }).notNull(),
+  defaultBranch: varchar("defaultBranch", { length: 128 }).default("main").notNull(),
+  lastPushedAt: timestamp("lastPushedAt"),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  syncStatus: mysqlEnum("syncStatus", ["in_sync", "out_of_sync", "syncing", "error"]).default("in_sync").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProjectGitHubRepo = typeof projectGitHubRepos.$inferSelect;
+export type InsertProjectGitHubRepo = typeof projectGitHubRepos.$inferInsert;
+
+/**
+ * Vercel project linked to generated projects
+ */
+export const projectVercelDeployments = mysqlTable("project_vercel_deployments", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  userId: int("userId").notNull(),
+  vercelProjectId: varchar("vercelProjectId", { length: 128 }).notNull(),
+  vercelProjectName: varchar("vercelProjectName", { length: 128 }).notNull(),
+  productionUrl: varchar("productionUrl", { length: 256 }),
+  previewUrl: varchar("previewUrl", { length: 256 }),
+  gitHubRepoId: int("gitHubRepoId"), // Link to GitHub repo if available
+  autoDeployEnabled: boolean("autoDeployEnabled").default(true).notNull(),
+  deploymentStatus: mysqlEnum("deploymentStatus", ["idle", "building", "ready", "error", "canceled"]).default("idle").notNull(),
+  lastDeploymentAt: timestamp("lastDeploymentAt"),
+  lastDeploymentStatus: varchar("lastDeploymentStatus", { length: 32 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProjectVercelDeployment = typeof projectVercelDeployments.$inferSelect;
+export type InsertProjectVercelDeployment = typeof projectVercelDeployments.$inferInsert;
+
+/**
+ * GitHub pull requests for projects
+ */
+export const githubPullRequests = mysqlTable("github_pull_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  githubRepoId: int("githubRepoId").notNull(),
+  prNumber: int("prNumber").notNull(),
+  prTitle: varchar("prTitle", { length: 256 }).notNull(),
+  prDescription: text("prDescription"),
+  author: varchar("author", { length: 128 }).notNull(),
+  sourceBranch: varchar("sourceBranch", { length: 128 }).notNull(),
+  targetBranch: varchar("targetBranch", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["open", "closed", "merged", "draft"]).default("open").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  mergedAt: timestamp("mergedAt"),
+  closedAt: timestamp("closedAt"),
+});
+
+export type GitHubPullRequest = typeof githubPullRequests.$inferSelect;
+export type InsertGitHubPullRequest = typeof githubPullRequests.$inferInsert;
+
+/**
+ * GitHub issues for projects
+ */
+export const githubIssues = mysqlTable("github_issues", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  githubRepoId: int("githubRepoId").notNull(),
+  issueNumber: int("issueNumber").notNull(),
+  issueTitle: varchar("issueTitle", { length: 256 }).notNull(),
+  issueDescription: text("issueDescription"),
+  author: varchar("author", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["open", "closed"]).default("open").notNull(),
+  labels: text("labels"), // JSON array
+  assignees: text("assignees"), // JSON array
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  closedAt: timestamp("closedAt"),
+});
+
+export type GitHubIssue = typeof githubIssues.$inferSelect;
+export type InsertGitHubIssue = typeof githubIssues.$inferInsert;
+
+/**
+ * Vercel deployments history
+ */
+export const vercelDeploymentHistory = mysqlTable("vercel_deployment_history", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  vercelDeploymentId: varchar("vercelDeploymentId", { length: 128 }).notNull().unique(),
+  vercelProjectId: varchar("vercelProjectId", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["building", "ready", "error", "canceled"]).notNull(),
+  environment: mysqlEnum("environment", ["production", "preview"]).default("preview").notNull(),
+  gitCommitSha: varchar("gitCommitSha", { length: 128 }),
+  gitBranch: varchar("gitBranch", { length: 128 }),
+  gitCommitMessage: text("gitCommitMessage"),
+  deploymentUrl: varchar("deploymentUrl", { length: 256 }),
+  errorMessage: text("errorMessage"),
+  buildDurationMs: int("buildDurationMs"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type VercelDeploymentHistory = typeof vercelDeploymentHistory.$inferSelect;
+export type InsertVercelDeploymentHistory = typeof vercelDeploymentHistory.$inferInsert;
+
+/**
+ * GitHub-Vercel sync logs for 2-way synchronization
+ */
+export const gitHubVercelSyncLogs = mysqlTable("github_vercel_sync_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  syncType: mysqlEnum("syncType", ["github_to_local", "local_to_github", "github_to_vercel", "vercel_to_github"]).notNull(),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "failed"]).default("pending").notNull(),
+  filesChanged: int("filesChanged").default(0).notNull(),
+  filesAdded: int("filesAdded").default(0).notNull(),
+  filesDeleted: int("filesDeleted").default(0).notNull(),
+  conflictCount: int("conflictCount").default(0).notNull(),
+  errorMessage: text("errorMessage"),
+  syncDetails: text("syncDetails"), // JSON
+  triggeredBy: varchar("triggeredBy", { length: 128 }), // "manual", "webhook", "scheduled"
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type GitHubVercelSyncLog = typeof gitHubVercelSyncLogs.$inferSelect;
+export type InsertGitHubVercelSyncLog = typeof gitHubVercelSyncLogs.$inferInsert;
+
+/**
+ * Webhook delivery logs for GitHub and Vercel events
+ */
+export const webhookDeliveries = mysqlTable("webhook_deliveries", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  webhookSource: mysqlEnum("webhookSource", ["github", "vercel"]).notNull(),
+  eventType: varchar("eventType", { length: 128 }).notNull(),
+  deliveryId: varchar("deliveryId", { length: 256 }).unique().notNull(),
+  payload: text("payload"), // JSON
+  statusCode: int("statusCode"),
+  responseBody: text("responseBody"),
+  retryCount: int("retryCount").default(0).notNull(),
+  maxRetries: int("maxRetries").default(5).notNull(),
+  nextRetryAt: timestamp("nextRetryAt"),
+  isSuccessful: boolean("isSuccessful").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  processedAt: timestamp("processedAt"),
+});
+
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;
+export type InsertWebhookDelivery = typeof webhookDeliveries.$inferInsert;

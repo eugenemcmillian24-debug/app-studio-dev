@@ -50,6 +50,13 @@
       "when": 1777533208570,
       "tag": "0006_sweet_mathemanic",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1777751548341,
+      "tag": "0007_boring_doctor_spectrum",
+      "breakpoints": true
     }
   ]
 }
