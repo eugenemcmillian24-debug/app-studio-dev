@@ -11,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2023-10-16",
 });
 
-type SubscriptionTier = "starter" | "professional" | "enterprise";
+type SubscriptionTier = "basic" | "starter" | "professional" | "enterprise";
 
 interface SubscriptionPlan {
   tier: SubscriptionTier;
@@ -49,20 +49,48 @@ interface UsageData {
 
 // Subscription plans configuration
 const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
+  basic: {
+    tier: "basic",
+    name: "Basic",
+    price: 3.99,
+    billingCycle: "monthly",
+    features: [
+      "1 app generation per month",
+      "Basic GitHub integration",
+      "Vercel deployment",
+      "Community support",
+      "Standard features",
+      "Email notifications",
+    ],
+    limits: {
+      appGenerations: 1,
+      deployments: 10,
+      environments: 1,
+      teamMembers: 1,
+      projects: 1,
+      apiCalls: 1000,
+      auditLogRetention: 0,
+    },
+    stripePriceId: process.env.VITE_STRIPE_BASIC_PRICE_ID || "",
+  },
   starter: {
     tier: "starter",
     name: "Starter",
     price: 29,
     billingCycle: "monthly",
     features: [
-      "Basic GitHub integration",
+      "Unlimited app generations",
+      "Full GitHub integration",
       "Single Vercel project",
       "Up to 3 team members",
       "Basic deployment monitoring",
       "7-day deployment history",
       "Email notifications",
+      "100 deployments/month",
+      "GitHub Actions support",
     ],
     limits: {
+      appGenerations: 999999,
       deployments: 100,
       environments: 1,
       teamMembers: 3,
@@ -78,21 +106,25 @@ const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
     price: 99,
     billingCycle: "monthly",
     features: [
-      "Full GitHub integration",
+      "Everything in Starter",
       "Up to 5 Vercel projects",
       "Up to 15 team members",
       "Advanced deployment monitoring",
       "90-day deployment history",
       "Slack/Discord notifications",
-      "GitHub Actions integration",
-      "Basic RBAC",
+      "GitHub Actions workflows",
+      "Advanced RBAC",
       "Deployment approval workflows",
       "30-day audit logs",
       "Cost tracking & budget alerts",
       "Performance metrics dashboard",
-      "Priority email support",
+      "1,000 deployments/month",
+      "Up to 3 environments",
+      "Automated rollback",
+      "Priority support",
     ],
     limits: {
+      appGenerations: 999999,
       deployments: 1000,
       environments: 3,
       teamMembers: 15,
@@ -125,8 +157,11 @@ const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
       "Custom webhooks & integrations",
       "Dedicated account manager",
       "24/7 phone & email support",
+      "Custom training & onboarding",
+      "Advanced security features",
     ],
     limits: {
+      appGenerations: 999999,
       deployments: 999999,
       environments: 999999,
       teamMembers: 999999,
@@ -175,7 +210,7 @@ export const subscriptionRouter = router({
         if (!subscription) {
           return {
             subscription: null,
-            tier: "starter",
+            tier: "basic",
             status: "none",
           };
         }
@@ -201,7 +236,7 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         projectId: z.string(),
-        tier: z.enum(["starter", "professional", "enterprise"]),
+        tier: z.enum(["basic", "starter", "professional", "enterprise"]),
         billingCycle: z.enum(["monthly", "annual"]).default("monthly"),
       })
     )
@@ -280,7 +315,7 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         projectId: z.string(),
-        newTier: z.enum(["professional", "enterprise"]),
+        newTier: z.enum(["starter", "professional", "enterprise"]),
       })
     )
     .mutation(async ({ input }) => {
@@ -358,7 +393,7 @@ export const subscriptionRouter = router({
         // Update local subscription
         subscription.status = "cancelled";
         subscription.cancelledAt = new Date().toISOString();
-        subscription.tier = "starter";
+        subscription.tier = "basic";
         subscription.updatedAt = new Date().toISOString();
 
         subscriptions.set(input.projectId, subscription);
@@ -386,7 +421,7 @@ export const subscriptionRouter = router({
     .query(async ({ input }) => {
       try {
         const subscription = subscriptions.get(input.projectId);
-        const tier = subscription?.tier || "starter";
+        const tier = subscription?.tier || "basic";
         const plan = SUBSCRIPTION_PLANS[tier];
 
         const hasAccess = plan.features.includes(input.feature);
@@ -417,7 +452,7 @@ export const subscriptionRouter = router({
     .query(async ({ input }) => {
       try {
         const subscription = subscriptions.get(input.projectId);
-        const tier = subscription?.tier || "starter";
+        const tier = subscription?.tier || "basic";
         const plan = SUBSCRIPTION_PLANS[tier];
 
         const limit = plan.limits[input.metric] || 0;
@@ -485,7 +520,7 @@ export const subscriptionRouter = router({
     .query(async ({ input }) => {
       try {
         const subscription = subscriptions.get(input.projectId);
-        const tier = subscription?.tier || "starter";
+        const tier = subscription?.tier || "basic";
         const plan = SUBSCRIPTION_PLANS[tier];
         const currentUsage = usage.get(input.projectId) || {
           deployments: 0,
@@ -573,7 +608,7 @@ export const subscriptionRouter = router({
     .query(async ({ input }) => {
       try {
         const subscription = subscriptions.get(input.projectId);
-        const tier = subscription?.tier || "starter";
+        const tier = subscription?.tier || "basic";
         const plan = SUBSCRIPTION_PLANS[tier];
         const currentUsage = usage.get(input.projectId) || {
           deployments: 0,

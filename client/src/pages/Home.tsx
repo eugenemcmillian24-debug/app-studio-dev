@@ -1,6 +1,6 @@
 "use client";
 import { useLocation } from "wouter";
-import { Sparkles, Zap, Download, Globe, FileCode2, Database, ArrowRight, Github } from "lucide-react";
+import { Sparkles, Zap, Download, Globe, FileCode2, Database, ArrowRight, Github, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { getLoginUrl } from "@/const";
@@ -59,9 +59,38 @@ const FEATURES = [
   },
 ];
 
+const TESTIMONIALS = [
+  {
+    name: "Sarah Chen",
+    role: "Founder, TechStartup",
+    quote: "AppStudio saved us 3 months of development time. We went from idea to MVP in 2 weeks.",
+    avatar: "SC",
+  },
+  {
+    name: "Marcus Johnson",
+    role: "Lead Developer, Agency",
+    quote: "The generated code is production-ready. We barely needed to modify anything.",
+    avatar: "MJ",
+  },
+  {
+    name: "Lisa Rodriguez",
+    role: "Solo Developer",
+    quote: "Finally, I can focus on business logic instead of boilerplate. This is a game-changer.",
+    avatar: "LR",
+  },
+];
+
 export default function Home() {
   const [, navigate] = useLocation();
   const { user } = useAuth();
+
+  const handleStartBuilding = () => {
+    if (user) {
+      navigate("/studio");
+    } else {
+      window.location.href = getLoginUrl("/studio");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -78,16 +107,33 @@ export default function Home() {
             className="text-muted-foreground hover:text-foreground">
             Gallery
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate("/pricing")}
+            className="text-muted-foreground hover:text-foreground">
+            Pricing
+          </Button>
           {user ? (
             <Button size="sm" onClick={() => navigate("/studio")}
               className="bg-violet-600 hover:bg-violet-500 text-white">
               Open Studio
             </Button>
           ) : (
-            <Button size="sm" onClick={() => navigate("/studio")}
-              className="bg-violet-600 hover:bg-violet-500 text-white">
-              Start Building
-            </Button>
+            <>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.location.href = getLoginUrl("/")}
+              >
+                <LogIn className="size-4 mr-2" />
+                Sign In
+              </Button>
+              <Button 
+                size="sm" 
+                onClick={handleStartBuilding}
+                className="bg-violet-600 hover:bg-violet-500 text-white"
+              >
+                Start Building
+              </Button>
+            </>
           )}
         </div>
       </nav>
@@ -123,11 +169,11 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button
               size="lg"
-              onClick={() => navigate("/studio")}
+              onClick={handleStartBuilding}
               className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-500 hover:to-violet-400 text-white font-bold px-8 py-6 text-base rounded-xl shadow-lg shadow-violet-900/30"
             >
               <Sparkles className="size-4 mr-2" />
-              Generate Your App
+              {user ? "Open Studio" : "Start Building Free"}
               <ArrowRight className="size-4 ml-2" />
             </Button>
             <Button
@@ -145,7 +191,7 @@ export default function Home() {
             {EXAMPLE_PROMPTS.slice(0, 4).map((p, i) => (
               <button
                 key={i}
-                onClick={() => navigate("/studio")}
+                onClick={handleStartBuilding}
                 className="px-3 py-1.5 rounded-full border border-border/50 bg-card/50 text-muted-foreground text-xs hover:border-violet-500/40 hover:text-foreground hover:bg-card transition-all"
               >
                 {p.slice(0, 45)}...
@@ -184,6 +230,37 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 bg-card/50 border-y border-border/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Loved by developers
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Join thousands of developers who are shipping faster with AppStudio
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="p-6 rounded-2xl border border-border/50 bg-background">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="size-12 rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center text-white font-bold">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <p className="font-semibold">{t.name}</p>
+                    <p className="text-sm text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+                <p className="text-muted-foreground italic">"{t.quote}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Stack section */}
       <section className="py-16 px-6 border-t border-border/50">
         <div className="max-w-4xl mx-auto text-center">
@@ -200,6 +277,54 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pricing preview */}
+      <section className="py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Simple, transparent pricing
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+              Start free. Scale as you grow. All plans include a 14-day free trial.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              { name: "Basic", price: "$3.99", desc: "Try AppStudio" },
+              { name: "Starter", price: "$29", desc: "For individuals" },
+              { name: "Professional", price: "$99", desc: "For teams", highlighted: true },
+              { name: "Enterprise", price: "Custom", desc: "For organizations" },
+            ].map((plan) => (
+              <div
+                key={plan.name}
+                className={`p-6 rounded-2xl border transition-all ${
+                  plan.highlighted
+                    ? "border-violet-500/50 bg-violet-500/5 ring-2 ring-violet-500/20"
+                    : "border-border/50 bg-card/50 hover:border-border hover:bg-card"
+                }`}
+              >
+                <h3 className="font-semibold mb-1">{plan.name}</h3>
+                <p className="text-2xl font-bold mb-1">{plan.price}</p>
+                <p className="text-sm text-muted-foreground">{plan.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/pricing")}
+              className="border-border/50 hover:border-border text-foreground font-semibold px-8 py-6 text-base rounded-xl"
+            >
+              View Full Pricing
+              <ArrowRight className="size-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-20 px-6">
         <div className="max-w-2xl mx-auto text-center">
@@ -210,11 +335,11 @@ export default function Home() {
             </p>
             <Button
               size="lg"
-              onClick={() => navigate("/studio")}
+              onClick={handleStartBuilding}
               className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white font-bold px-10 py-6 text-base rounded-xl"
             >
               <Sparkles className="size-4 mr-2" />
-              Start for Free
+              {user ? "Open Studio" : "Start for Free"}
             </Button>
           </div>
         </div>
@@ -222,7 +347,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-border/50 text-center text-muted-foreground text-sm">
-        <p>AppStudio — AI-powered full-stack scaffold generator. <a href="/pricing" className="text-violet-400 hover:text-violet-300">Paid plans start at $9/month</a>.</p>
+        <p>AppStudio — AI-powered full-stack scaffold generator. <a href="/pricing" className="text-violet-400 hover:text-violet-300">Plans start at $3.99/month</a>.</p>
       </footer>
     </div>
   );
