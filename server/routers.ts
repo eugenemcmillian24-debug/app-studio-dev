@@ -35,6 +35,26 @@ import { marketplaceRouter } from "./marketplace-router";
 import { qualityRouter } from "./quality-router";
 import { integrationsRouter } from "./integrations-router";
 import { webhookDeliveryRouter } from "./webhook-delivery-router";
+import { analyticsAdvancedRouter } from "./analytics-advanced-router";
+import { analyticsReportingRouter } from "./analytics-reporting-router";
+import { auditLoggingRouter } from "./audit-logging-router";
+import { automatedTestingRouter } from "./automated-testing-router";
+import { costOptimizationRouter } from "./cost-optimization-router";
+import { customWebhooksRouter } from "./custom-webhooks-router";
+import { customerSuccessRouter } from "./customer-success-router";
+import { deploymentLogsRouter } from "./deployment-logs-router";
+import { deploymentRollbackRouter } from "./deployment-rollback-router";
+import { emailCampaignsRouter } from "./email-campaigns-router";
+import { emailVerificationRouter } from "./email-verification-router";
+import { envManagementRouter } from "./env-management-router";
+import { gamificationRouter } from "./gamification-router";
+import { githubActionsCICDRouter } from "./github-actions-cicd-router";
+import { githubActionsRouter } from "./github-actions-router";
+import { monitoringAlertingRouter } from "./monitoring-alerting-router";
+import { projectDuplicationRouter } from "./project-duplication-router";
+import { referralProgramRouter } from "./referral-program-router";
+import { subscriptionRouter } from "./subscription-router";
+import { teamCollaborationRouter } from "./team-collaboration-router";
 import {
   saveProject,
   getProjectById,
@@ -112,6 +132,26 @@ export const appRouter = router({
   search: searchRouter,
   shortcuts: shortcutsRouter,
   githubIntegration: githubIntegrationRouter,
+  analyticsAdvanced: analyticsAdvancedRouter,
+  analyticsReporting: analyticsReportingRouter,
+  auditLogging: auditLoggingRouter,
+  automatedTesting: automatedTestingRouter,
+  costOptimization: costOptimizationRouter,
+  customWebhooks: customWebhooksRouter,
+  customerSuccess: customerSuccessRouter,
+  deploymentLogs: deploymentLogsRouter,
+  deploymentRollback: deploymentRollbackRouter,
+  emailCampaigns: emailCampaignsRouter,
+  emailVerification: emailVerificationRouter,
+  envManagement: envManagementRouter,
+  gamification: gamificationRouter,
+  githubActionsCICD: githubActionsCICDRouter,
+  githubActions: githubActionsRouter,
+  monitoringAlerting: monitoringAlertingRouter,
+  projectDuplication: projectDuplicationRouter,
+  referralProgram: referralProgramRouter,
+  subscription: subscriptionRouter,
+  teamCollaboration: teamCollaborationRouter,
 
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
