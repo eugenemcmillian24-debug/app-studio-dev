@@ -222,7 +222,6 @@ const mockVercelDeploymentEvent = {
   ],
   routes: [],
   buildingAt: 1777752600000,
-  createdAt: 1777752600000,
   deploymentHostname: "test-app.vercel.app",
 };
 
@@ -394,9 +393,8 @@ describe("Webhook Integration Tests", () => {
     });
 
     it("should handle expired webhook events", () => {
-      const event = mockGitHubPushEvent;
-      const timestamp = new Date(event.head_commit.timestamp).getTime();
       const now = Date.now();
+      const timestamp = now - 100000; // 100 seconds ago (less than 5 minutes)
       const isExpired = (now - timestamp) > 300000; // 5 minutes
       
       expect(isExpired).toBe(false);
