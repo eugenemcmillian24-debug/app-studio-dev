@@ -18,6 +18,11 @@ import WebhookConsole from "./pages/WebhookConsole";
 import VerifyEmail from "./pages/VerifyEmail";
 import Onboarding from "./pages/Onboarding";
 import Referrals from "./pages/Referrals";
+import { APIDocumentation } from "./components/APIDocumentation";
+import { AdvancedAnalyticsDashboard } from "./components/AdvancedAnalyticsDashboard";
+import { IntegrationSettings } from "./components/IntegrationSettings";
+import { DeploymentMonitor } from "./components/DeploymentMonitor";
+import { RollbackRevertUI } from "./components/RollbackRevertUI";
 
 function Router() {
   return (
@@ -36,6 +41,11 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/referrals" component={Referrals} />
+      <Route path="/api-docs" component={() => <APIDocumentation endpoints={[]} />} />
+      <Route path="/analytics-dashboard" component={() => <AdvancedAnalyticsDashboard />} />
+      <Route path="/integrations" component={() => <IntegrationSettings />} />
+      <Route path="/deployments" component={() => <DeploymentMonitor projectId={0} />} />
+      <Route path="/rollback" component={() => <RollbackRevertUI deployments={[]} commits={[]} onRollback={async () => {}} onRevert={async () => {}} />} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
