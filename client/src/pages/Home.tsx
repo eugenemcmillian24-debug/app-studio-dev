@@ -82,7 +82,7 @@ const TESTIMONIALS = [
 
 export default function Home() {
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const user = useAuth()?.user;
 
   const handleStartBuilding = () => {
     if (user) {
@@ -91,7 +91,7 @@ export default function Home() {
       window.location.href = getLoginUrl("/studio");
     }
   };
-
+  // Use upgraded landing page
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Nav */}
